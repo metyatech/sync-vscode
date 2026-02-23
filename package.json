@@ -76,10 +76,11 @@
       "compile": "tsc -p ./",
       "watch": "tsc -watch -p ./",
       "pretest": "npm run compile && npm run lint",
-      "lint": "eslint src --ext ts",
+      "lint": "eslint src",
       "test": "node ./out/test/runTest.js",
       "build": "tsc -w",
       
+      "verify": "npm run lint && npm run compile",
       "package:prod": "npm run compile && npm prune --omit=dev && npx @vscode/vsce package && npm install"
     },
   "devDependencies": {
