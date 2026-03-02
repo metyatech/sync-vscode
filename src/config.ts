@@ -1,4 +1,4 @@
-export interface SftpConfig {
+﻿export interface SftpConfig {
   host: string;
   port: number;
   user: string;

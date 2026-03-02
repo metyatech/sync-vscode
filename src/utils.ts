@@ -1,11 +1,11 @@
-import * as vscode from 'vscode';
+﻿import * as vscode from 'vscode';
 import * as path from 'path';
-import { ErrorCode, showError } from './errors';
-import { saveConfig, loadConfig } from './config';
+import { ErrorCode, showError } from './errors/index.js';
+import { saveConfig, loadConfig } from './config.js';
 
 // SFTP接続エラーを詳細に表示するヘルパー
 export async function showSftpError(error: unknown, fallbackPrefix?: string): Promise<boolean> {
-  const errMsg = error instanceof Error ? error.message : String(error);
+  const errMsg = error instanceof Error ? (error as any).message : String(error);
   const cfg = loadConfig();
   const host = cfg.host;
 
@@ -67,7 +67,7 @@ async function promptAuthReentry(): Promise<boolean> {
     value: config.user
   });
   
-  if (newUser === undefined) return false;
+  if (newUser === undefined) {return false;}
   
   const newPassword = await vscode.window.showInputBox({
     prompt: 'パスワードを再入力してください',

@@ -1,11 +1,11 @@
-// SFTP自動同期拡張機能
+﻿// SFTP自動同期拡張機能
 import * as vscode from 'vscode';
-import { loadConfig, saveConfig } from './config';
-import { safeGetSftpClient, closeSftpClient } from './sftpClient';
-import { toPosixPath } from './utils';
-import { startWatching as watcherStart, stopWatching as watcherStop, isWatching } from './watcher';
-import { StatusBarController } from './statusBarController';
-import { ErrorCode, showError } from './errors';
+import { loadConfig, saveConfig } from './config.js';
+import { safeGetSftpClient, closeSftpClient } from './sftpClient.js';
+import { toPosixPath } from './utils.js';
+import { startWatching as watcherStart, stopWatching as watcherStop, isWatching } from './watcher.js';
+import { StatusBarController } from './statusBarController.js';
+import { ErrorCode, showError } from './errors/index.js';
 
 export let statusBarControllerInstance: StatusBarController;
 
@@ -22,7 +22,7 @@ async function testSftpConnection(): Promise<boolean> {
       vscode.window.showInformationMessage('SFTP接続テストに成功しました');
       return true;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('SFTP接続テストエラー:', error);
   }
   
@@ -44,10 +44,10 @@ async function startSync(statusBarController: StatusBarController): Promise<bool
       statusBarController.setState('running');
       return true;
     }
-  } catch (error) {
+  } catch (error: any) {
     await watcherStop();
     statusBarController.setState('idle');
-    showError(ErrorCode.SyncStartFailed, error instanceof Error ? error.message : String(error));
+    showError(ErrorCode.SyncStartFailed, error instanceof Error ? (error as any).message : String(error));
   }
   return false;
 }
@@ -72,9 +72,9 @@ async function handleConfigChange(
       if (isWatching()) {
         statusBarController.setState('running');
       }
-    } catch (error) {
+    } catch (error: any) {
       statusBarController.setState('idle');
-      showError(ErrorCode.SyncRestartFailed, error instanceof Error ? error.message : String(error));
+      showError(ErrorCode.SyncRestartFailed, error instanceof Error ? (error as any).message : String(error));
     }
   } else if (startSyncAfterConfig) {
     // 設定後に同期を開始するよう指定されている場合
@@ -116,13 +116,13 @@ async function configureSettings(
     prompt: 'SFTPホスト名を入力してください',
     value: config.host || ''
   });
-  if (!host) return false;
+  if (!host) {return false;}
 
   const port = await vscode.window.showInputBox({
     prompt: 'SFTPポート番号を入力してください',
     value: config.port?.toString() || '22'
   });
-  if (!port) return false;
+  if (!port) {return false;}
 
   const portNumber = parseInt(port, 10);
   if (isNaN(portNumber) || portNumber <= 0) {
@@ -134,20 +134,20 @@ async function configureSettings(
     prompt: 'SFTPユーザー名を入力してください',
     value: config.user || ''
   });
-  if (!user) return false;
+  if (!user) {return false;}
 
   const password = await vscode.window.showInputBox({
     prompt: 'SFTPパスワードを入力してください',
     value: config.password || '',
     password: true
   });
-  if (!password) return false;
+  if (!password) {return false;}
 
   const remotePath = await vscode.window.showInputBox({
     prompt: 'リモートのベースパスを入力してください',
     value: config.remotePath_posix || '/'
   });
-  if (!remotePath) return false;
+  if (!remotePath) {return false;}
 
   // 設定の保存
   const newcfg = {

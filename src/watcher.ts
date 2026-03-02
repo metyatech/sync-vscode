@@ -1,13 +1,13 @@
-import * as vscode from 'vscode';
+﻿import * as vscode from 'vscode';
 import * as pathUtil from 'path';
 import * as fs from 'fs';
-import { safeGetSftpClient, closeSftpClient } from './sftpClient';
-import { sftpMkdirRecursive, listRemoteFilesRecursiveRelative, listLocalFilesRecursiveRelative, handleDelete, sftpRmdirRecursive, SftpListError } from './sftpUtils';
-import { toPosixPath } from './utils';
-import { loadConfig } from './config';
-import { ErrorCode, showError } from './errors';
-import { statusBarControllerInstance } from './extension';
-import { showSftpError } from './utils';
+import { safeGetSftpClient, closeSftpClient } from './sftpClient.js';
+import { sftpMkdirRecursive, listRemoteFilesRecursiveRelative, listLocalFilesRecursiveRelative, handleDelete, sftpRmdirRecursive, SftpListError } from './sftpUtils.js';
+import { toPosixPath } from './utils.js';
+import { loadConfig } from './config.js';
+import { ErrorCode, showError } from './errors/index.js';
+import { statusBarControllerInstance } from './extension.js';
+import { showSftpError } from './utils.js';
 
 let watcher: vscode.FileSystemWatcher | undefined;
 let isSyncing = false;
@@ -22,14 +22,14 @@ function addChangedFile(relativePath: string, type: 'add' | 'addDir' | 'change' 
 // 同期処理
 async function syncChangedFiles() {
   console.log('syncChangedFiles: 処理開始');
-  if (isSyncing) return;
+  if (isSyncing) {return;}
   isSyncing = true;
   try {
-    if (changedRelativePaths.size === 0) return;
+    if (changedRelativePaths.size === 0) {return;}
     // 常に最新の設定を取得
     const config = loadConfig();
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) return;
+    if (!workspaceFolders) {return;}
     const workspaceRoot = workspaceFolders[0].uri.fsPath;
     const sftp = await safeGetSftpClient('同期処理に失敗しました');
     if (!sftp) {
@@ -66,7 +66,7 @@ async function syncChangedFiles() {
           await sftpRmdirRecursive(sftp, pathUtil.posix.join(config.remotePath_posix, rel));
           console.log(`✔ 削除完了: ${rel}`);
           changedRelativePaths.delete(rel);
-        } catch (err) {
+        } catch (err: any) {
           console.error(`✖ 削除失敗: ${rel} - ${err}`);
         }
       }
@@ -82,7 +82,7 @@ async function syncChangedFiles() {
           await sftpMkdirRecursive(sftp, pathUtil.posix.join(config.remotePath_posix, rel));
           console.log(`✔ ディレクトリ作成完了: ${rel}`);
           changedRelativePaths.delete(rel);
-        } catch (err) {
+        } catch (err: any) {
           console.error(`✖ ディレクトリ作成失敗: ${rel} - ${err}`);
         }
       }
@@ -102,7 +102,7 @@ async function syncChangedFiles() {
             changedRelativePaths.delete(rel);
             continue;
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error(`ファイルサイズ取得失敗: ${rel} - ${err}`);
           continue;
         }
@@ -113,14 +113,14 @@ async function syncChangedFiles() {
           });
           console.log(`✔ アップロード完了: ${rel}`);
           changedRelativePaths.delete(rel);
-        } catch (err) {
+        } catch (err: any) {
           console.error(`✖ アップロード失敗: ${rel} - ${err}`);
         }
       }
     }
     console.log('syncChangedFiles: 処理終了');
-  } catch (error) {
-    showError(ErrorCode.SyncError, error instanceof Error ? error.message : String(error));
+  } catch (error: any) {
+    showError(ErrorCode.SyncError, error instanceof Error ? (error as any).message : String(error));
     await stopWatching();
   } finally {
     isSyncing = false;
@@ -175,9 +175,9 @@ export async function startWatching() {
         // 両方成功したらループを抜ける
         initSuccess = true;
         console.log(`リモートパス初期化とファイルリスト取得が成功しました。${remotePaths.length}アイテム検出。`);
-      } catch (error) {
+      } catch (error: any) {
         if (error instanceof SftpListError) {
-          console.warn(`リモートパスの初期化またはリスト取得中にエラー発生 (Path: ${error.path}, PermissionError: ${error.isPermissionError}): ${error.message}`);
+          console.warn(`リモートパスの初期化またはリスト取得中にエラー発生 (Path: ${error.path}, PermissionError: ${error.isPermissionError}): ${(error as any).message}`);
           
           // SftpListError の場合、ユーザーに再入力を促す
           const settingsUpdated = await showSftpError(error, 
@@ -222,7 +222,7 @@ export async function startWatching() {
       try {
         await handleDelete(sftp, pathUtil.posix.join(config.remotePath_posix, rel));
         console.log(`✔ 初期同期削除成功: ${rel}`);
-      } catch (err) {
+      } catch (err: any) {
         console.error(`✖ 初期同期削除失敗: ${rel} - ${err}`);
       }
     }
@@ -247,7 +247,7 @@ export async function startWatching() {
           });
           console.log(`✔ 初期同期アップロード完了: ${rel}`);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(`✖ 初期同期アップロード失敗: ${rel} - ${err}`);
       }
     }
@@ -259,12 +259,12 @@ export async function startWatching() {
       const localFull = pathUtil.join(workspaceRoot, rel);
       let statLocal: fs.Stats;
       try { statLocal = fs.statSync(localFull); } catch { continue; }
-      if (!statLocal.isFile()) continue;
+      if (!statLocal.isFile()) {continue;}
       const remoteFull = pathUtil.posix.join(config.remotePath_posix, rel);
       try {
         await new Promise<void>((resolve, reject) => {
           sftp!.stat(remoteFull, (err, stats) => {
-            if (err) return resolve();
+            if (err) {return resolve();}
             const remoteMtimeMs = stats.mtime * 1000;
             if (statLocal.mtimeMs > remoteMtimeMs) {
               console.log(`初期同期: 更新ファイルアップロード: ${rel}`);
@@ -275,7 +275,7 @@ export async function startWatching() {
           });
         });
         console.log(`✔ 初期同期更新完了: ${rel}`);
-      } catch (err) {
+      } catch (err: any) {
         console.error(`✖ 初期同期更新失敗: ${rel} - ${err}`);
       }
     }
@@ -288,7 +288,7 @@ export async function startWatching() {
     const ignoreRe = /(^|[\\/])\.|[\\/]node_modules[\\/]|[\\/]out[\\/]/;
     watcher.onDidCreate(uri => {
       const fsPath = uri.fsPath;
-      if (ignoreRe.test(fsPath)) return;
+      if (ignoreRe.test(fsPath)) {return;}
       const rel = toPosixPath(pathUtil.relative(workspaceRoot, fsPath));
       try {
         const stat = fs.statSync(fsPath);
@@ -300,14 +300,14 @@ export async function startWatching() {
     });
     watcher.onDidChange(uri => {
       const fsPath = uri.fsPath;
-      if (ignoreRe.test(fsPath)) return;
+      if (ignoreRe.test(fsPath)) {return;}
       const rel = toPosixPath(pathUtil.relative(workspaceRoot, fsPath));
       addChangedFile(rel, 'change');
       syncChangedFiles();
     });
     watcher.onDidDelete(uri => {
       const fsPath = uri.fsPath;
-      if (ignoreRe.test(fsPath)) return;
+      if (ignoreRe.test(fsPath)) {return;}
       const rel = toPosixPath(pathUtil.relative(workspaceRoot, fsPath));
       addChangedFile(rel, 'unlink');
       syncChangedFiles();
@@ -315,10 +315,10 @@ export async function startWatching() {
 
     console.log('startWatching: ファイル変更時に即時同期モード');
     vscode.window.showInformationMessage('SFTP同期を開始しました');
-  } catch (error) {
+  } catch (error: any) {
     // ループ内外からのエラーをここでキャッチして同期開始失敗として処理
     await stopWatching();
-    const errMsg = error instanceof Error ? error.message : String(error);
+    const errMsg = error instanceof Error ? (error as any).message : String(error);
     showError(ErrorCode.SyncStartFailed, errMsg);
     console.error(`同期開始プロセス全体でエラー: ${errMsg}`);
   }

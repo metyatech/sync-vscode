@@ -12,7 +12,7 @@ SFTP Auto Syncは、VS Code上で編集・保存したファイルを指定のSF
 
 ## 要求環境
 
-- Visual Studio Code v1.99.0 以降
+- Visual Studio Code v1.46.0 以降
 - Node.js v14 以降
 
 ## インストール手順
@@ -43,7 +43,25 @@ SFTP Auto Syncは、VS Code上で編集・保存したファイルを指定のSF
 
 - 大容量ファイル（デフォルト20MB以上）はアップロードできません。必要に応じて`ftpSync.maxUploadSize`を調整してください。
 
+## Compliance
+
+This project follows [AGENTS.md](./AGENTS.md) for automated operations.
+All changes must pass CI verification.
+
+### Development Commands
+
+- `npm run verify`: Run build, lint, and tests.
+- `npm run build`: Bundle the extension using Webpack.
+- `npm run lint`: Run ESLint.
+- `npm test`: Run integration tests.
+- `npm run prettier`: Format files using Prettier.
+
 ## リリースノート
+
+### 0.1.1
+- ESM 化とプロジェクト標準（AGENTS.md）への準拠
+- CI/CD 設定（GitHub Actions）の追加
+- Webpack によるバンドルとテスト環境の構築
 
 ### 0.1.0
 - 初期リリース: SFTP自動同期機能を実装

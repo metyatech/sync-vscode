@@ -1,9 +1,9 @@
-import { SFTPWrapper, FileEntryWithStats, Stats } from 'ssh2';
+﻿import { SFTPWrapper, FileEntryWithStats, Stats } from 'ssh2';
 import * as fs from 'fs';
 import * as pathUtil from 'path';
-import { safeGetSftpClient } from './sftpClient';
+import { safeGetSftpClient } from './sftpClient.js';
 import * as vscode from 'vscode';
-import { loadConfig } from './config';
+import { loadConfig } from './config.js';
 
 // 再帰的にディレクトリを作成
 export async function sftpMkdirRecursive(sftp: SFTPWrapper, dirPath_posix: string): Promise<void> {
@@ -17,8 +17,8 @@ export async function sftpMkdirRecursive(sftp: SFTPWrapper, dirPath_posix: strin
         sftp.stat(current, (statErr: Error | undefined) => {
           if (statErr && statErr.message.includes('No such file')) {
             sftp.mkdir(current, (mkdirErr?: Error | null) => {
-              if (mkdirErr) reject(mkdirErr);
-              else resolve();
+              if (mkdirErr) {reject(mkdirErr);}
+              else {resolve();}
             });
           } else if (statErr) {
             reject(statErr);
@@ -27,9 +27,9 @@ export async function sftpMkdirRecursive(sftp: SFTPWrapper, dirPath_posix: strin
           }
         });
       });
-    } catch (err) {
+    } catch (err: any) {
       // エラーが権限関連かチェック
-      const errMsg = err instanceof Error ? err.message : String(err);
+      const errMsg = err instanceof Error ? (err as any).message : String(err);
       const isPermissionError = errMsg.includes('Permission denied');
       
       if (isPermissionError) {
@@ -74,7 +74,7 @@ export async function listRemoteFilesRecursiveRelative(remotePath_posix: string)
         sftp!.readdir(p, (err, list) => {
           if (err) {
             console.error(`SFTPエラー (readdir ${p}): ${err}`);
-            const errMsg = err instanceof Error ? err.message : String(err);
+            const errMsg = err instanceof Error ? (err as any).message : String(err);
             const isPermissionError = errMsg.includes('Permission denied');
             reject(new SftpListError(
               `パス「${p}」の読み取りに失敗しました: ${errMsg}`,
@@ -86,7 +86,7 @@ export async function listRemoteFilesRecursiveRelative(remotePath_posix: string)
           }
         });
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Error during walk at ${p}:`, err);
       throw err;
     }
@@ -106,7 +106,7 @@ export async function listRemoteFilesRecursiveRelative(remotePath_posix: string)
     await walk(remotePath_posix);
     console.log(`File listing completed successfully for ${remotePath_posix}. Found ${remotePaths.length} items.`);
     return remotePaths;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error during listRemoteFilesRecursiveRelative:", error);
     throw error;
   }
@@ -117,11 +117,11 @@ export async function listLocalFilesRecursiveRelative(workspaceRoot: string): Pr
   const files: string[] = [];
   async function walk(dir: string) {
     for (const item of fs.readdirSync(dir)) {
-      if (item.startsWith('.') || item === 'node_modules' || item === 'out') continue;
+      if (item.startsWith('.') || item === 'node_modules' || item === 'out') {continue;}
       const itemPath = pathUtil.join(dir, item);
       const rel = pathUtil.relative(workspaceRoot, itemPath);
       files.push(rel);
-      if (fs.statSync(itemPath).isDirectory()) await walk(itemPath);
+      if (fs.statSync(itemPath).isDirectory()) {await walk(itemPath);}
     }
   }
   await walk(workspaceRoot);
@@ -133,13 +133,13 @@ export async function handleDelete(sftp: SFTPWrapper, remoteFilePath: string): P
   return new Promise((resolve, reject) => {
     sftp.stat(remoteFilePath, (err: Error | undefined, stats: Stats) => {
       if (err) {
-        if ((err as any).code === 'ENOENT' || err.message.includes('No such file')) return resolve();
+        if ((err as any).code === 'ENOENT' || (err as any).message.includes('No such file')) {return resolve();}
         return reject(err);
       }
       const action = stats.isDirectory() ? sftp.rmdir.bind(sftp) : sftp.unlink.bind(sftp);
       action(remoteFilePath, (e?: Error | null) => {
-        if (e) reject(e);
-        else resolve();
+        if (e) {reject(e);}
+        else {resolve();}
       });
     });
   });
@@ -150,12 +150,12 @@ export async function sftpRmdirRecursive(sftp: SFTPWrapper, remotePath: string):
   return new Promise((resolve, reject) => {
     sftp.stat(remotePath, (err, stats) => {
       if (err) {
-        if ((err as any).code === 'ENOENT' || err.message.includes('No such file')) return resolve();
+        if ((err as any).code === 'ENOENT' || (err as any).message.includes('No such file')) {return resolve();}
         return reject(err);
       }
       if (stats.isDirectory()) {
         sftp.readdir(remotePath, async (err2, list) => {
-          if (err2) return reject(err2);
+          if (err2) {return reject(err2);}
           try {
             for (const item of list) {
               const itemPath = pathUtil.posix.join(remotePath, item.filename);

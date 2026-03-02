@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import { loadConfig } from './config';
+﻿import * as vscode from 'vscode';
+import { loadConfig } from './config.js';
 
 /**
  * 同期状態に応じてステータスバーのボタンを表示・更新するコントローラー

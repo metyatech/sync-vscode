@@ -1,9 +1,10 @@
 {
   "name": "sync-vscode",
   "displayName": "SFTP Auto Sync",
-  "description": "変更されたファイルを自動的にSFTPサーバーへアップロードする拡張機能",
+  "description": "VS Code で編集したファイルを自動的に SFTP サーバーへ同期・アップロード・ダウンロードする拡張機能です。",
   "version": "0.1.0",
-  "publisher": "Kodai-Yamamoto-SIW",
+  "publisher": "metyatech",
+  "type": "module",
   "engines": {
     "vscode": "^1.46.0"
   },
@@ -16,10 +17,10 @@
     "onCommand:ftp-sync.stopSync",
     "onCommand:ftp-sync.configureSettings"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Kodai-Yamamoto-SIW/sync-vscode.git"
+    "url": "https://github.com/metyatech/sync-vscode.git"
   },
   "contributes": {
     "commands": [
@@ -33,7 +34,7 @@
       },
       {
         "command": "ftp-sync.configureSettings",
-        "title": "SFTP Sync: SFTP設定"
+        "title": "SFTP Sync: 設定の変更"
       }
     ],
     "configuration": {
@@ -42,55 +43,65 @@
         "ftpSync.host": {
           "type": "string",
           "default": "",
-          "description": "SFTPサーバーのホスト名"
+          "description": "SFTP サーバーのホスト名または IP アドレス"
         },
         "ftpSync.port": {
           "type": "number",
           "default": 22,
-          "description": "SFTPサーバーのポート番号"
+          "description": "SFTP サーバーのポート番号"
         },
         "ftpSync.user": {
           "type": "string",
           "default": "",
-          "description": "SFTPユーザー名"
+          "description": "SFTP ユーザー名"
         },
         "ftpSync.password": {
           "type": "string",
           "default": "",
-          "description": "SFTPパスワード"
+          "description": "SFTP パスワード"
         },
         "ftpSync.remotePath": {
           "type": "string",
           "default": "/",
-          "description": "リモートの基準パス"
+          "description": "リモートサーバー上のルートパス"
         },
         "ftpSync.maxUploadSize": {
           "type": "number",
           "default": 20971520,
-          "description": "SFTPで送信できるファイルサイズの上限（バイト）。デフォルトは20MB。"
+          "description": "SFTP で同期する際の最大ファイルサイズ (バイト単位、デフォルト 20MB)"
         }
       }
     }
   },
   "scripts": {
-      "compile": "tsc -p ./",
-      "watch": "tsc -watch -p ./",
-      "pretest": "npm run compile && npm run lint",
-      "lint": "eslint src --ext ts",
-      "test": "node ./out/test/runTest.js",
-      "build": "tsc -w",
-      
-      "package:prod": "npm run compile && npm prune --omit=dev && npx @vscode/vsce package && npm install"
-    },
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint .",
+    "test": "node ./out/test/runTest.js",
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "package": "npm run build && npx vsce package",
+    "verify": "npm run build && npm run lint && npm test",
+    "prettier": "prettier --write ."
+  },
   "devDependencies": {
+    "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^16.18.71",
+    "@types/node": "^20.19.35",
     "@types/ssh2": "^1.15.5",
     "@types/vscode": "^1.46.0",
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
+    "@vscode/test-electron": "^2.5.2",
     "eslint": "^8.1.0",
-    "typescript": "^4.4.4"
+    "glob": "^11.1.0",
+    "mocha": "^11.7.5",
+    "prettier": "^3.5.2",
+    "ts-loader": "^9.5.2",
+    "typescript": "^4.4.4",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
     "ssh2": "^1.16.0"
