@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import * as pathUtil from 'path';
 import * as fs from 'fs';
-import { safeGetSftpClient, closeSftpClient } from './sftpClient';
-import { sftpMkdirRecursive, listRemoteFilesRecursiveRelative, listLocalFilesRecursiveRelative, handleDelete, sftpRmdirRecursive, SftpListError } from './sftpUtils';
-import { toPosixPath } from './utils';
-import { loadConfig } from './config';
-import { ErrorCode, showError } from './errors';
-import { statusBarControllerInstance } from './extension';
-import { showSftpError } from './utils';
+import { Stats as SftpStats } from 'ssh2';
+import { safeGetSftpClient, closeSftpClient } from './sftpClient.js';
+import { sftpMkdirRecursive, listRemoteFilesRecursiveRelative, listLocalFilesRecursiveRelative, handleDelete, sftpRmdirRecursive, SftpListError } from './sftpUtils.js';
+import { toPosixPath } from './utils.js';
+import { loadConfig } from './config.js';
+import { ErrorCode, showError } from './errors/index.js';
+import { statusBarControllerInstance } from './extension.js';
+import { showSftpError } from './utils.js';
 
 let watcher: vscode.FileSystemWatcher | undefined;
 let isSyncing = false;
@@ -109,7 +110,7 @@ async function syncChangedFiles() {
         console.log(`→ アップロード: ${rel}`);
         try {
           await new Promise<void>((resolve, reject) => {
-            sftp.fastPut(localPath, remotePath, err => err ? reject(err) : resolve());
+            sftp.fastPut(localPath, remotePath, (err?: Error | null) => err ? reject(err) : resolve());
           });
           console.log(`✔ アップロード完了: ${rel}`);
           changedRelativePaths.delete(rel);
@@ -243,7 +244,7 @@ export async function startWatching() {
         } else {
           console.log(`初期同期: アップロードファイル: ${rel}`);
           await new Promise<void>((resolve, reject) => {
-            sftp!.fastPut(localFull, remoteFull, err => err ? reject(err) : resolve());
+            sftp!.fastPut(localFull, remoteFull, (err?: Error | null) => err ? reject(err) : resolve());
           });
           console.log(`✔ 初期同期アップロード完了: ${rel}`);
         }
@@ -263,12 +264,12 @@ export async function startWatching() {
       const remoteFull = pathUtil.posix.join(config.remotePath_posix, rel);
       try {
         await new Promise<void>((resolve, reject) => {
-          sftp!.stat(remoteFull, (err, stats) => {
+          sftp!.stat(remoteFull, (err: Error | undefined, stats: SftpStats) => {
             if (err) return resolve();
             const remoteMtimeMs = stats.mtime * 1000;
             if (statLocal.mtimeMs > remoteMtimeMs) {
               console.log(`初期同期: 更新ファイルアップロード: ${rel}`);
-              sftp!.fastPut(localFull, remoteFull, err2 => err2 ? reject(err2) : resolve());
+              sftp!.fastPut(localFull, remoteFull, (err2?: Error | null) => err2 ? reject(err2) : resolve());
             } else {
               resolve();
             }
@@ -286,7 +287,7 @@ export async function startWatching() {
       false, false, false
     );
     const ignoreRe = /(^|[\\/])\.|[\\/]node_modules[\\/]|[\\/]out[\\/]/;
-    watcher.onDidCreate(uri => {
+    watcher.onDidCreate((uri: vscode.Uri) => {
       const fsPath = uri.fsPath;
       if (ignoreRe.test(fsPath)) return;
       const rel = toPosixPath(pathUtil.relative(workspaceRoot, fsPath));
@@ -298,14 +299,14 @@ export async function startWatching() {
       }
       syncChangedFiles();
     });
-    watcher.onDidChange(uri => {
+    watcher.onDidChange((uri: vscode.Uri) => {
       const fsPath = uri.fsPath;
       if (ignoreRe.test(fsPath)) return;
       const rel = toPosixPath(pathUtil.relative(workspaceRoot, fsPath));
       addChangedFile(rel, 'change');
       syncChangedFiles();
     });
-    watcher.onDidDelete(uri => {
+    watcher.onDidDelete((uri: vscode.Uri) => {
       const fsPath = uri.fsPath;
       if (ignoreRe.test(fsPath)) return;
       const rel = toPosixPath(pathUtil.relative(workspaceRoot, fsPath));

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ErrorCode, showError } from './errors';
-import { saveConfig, loadConfig } from './config';
+import { ErrorCode, showError } from './errors/index.js';
+import { saveConfig, loadConfig } from './config.js';
 
 // SFTP接続エラーを詳細に表示するヘルパー
 export async function showSftpError(error: unknown, fallbackPrefix?: string): Promise<boolean> {

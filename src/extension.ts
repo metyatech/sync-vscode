@@ -1,11 +1,11 @@
 // SFTP自動同期拡張機能
 import * as vscode from 'vscode';
-import { loadConfig, saveConfig } from './config';
-import { safeGetSftpClient, closeSftpClient } from './sftpClient';
-import { toPosixPath } from './utils';
-import { startWatching as watcherStart, stopWatching as watcherStop, isWatching } from './watcher';
-import { StatusBarController } from './statusBarController';
-import { ErrorCode, showError } from './errors';
+import { loadConfig, saveConfig } from './config.js';
+import { safeGetSftpClient, closeSftpClient } from './sftpClient.js';
+import { toPosixPath } from './utils.js';
+import { startWatching as watcherStart, stopWatching as watcherStop, isWatching } from './watcher.js';
+import { StatusBarController } from './statusBarController.js';
+import { ErrorCode, showError } from './errors/index.js';
 
 export let statusBarControllerInstance: StatusBarController;
 
@@ -212,7 +212,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // コマンド登録
   context.subscriptions.push(startSyncCommand, stopSyncCommand, configureCommand);
-  context.subscriptions.push({ dispose: () => { watcherStop().catch(err => console.error(`停止時のエラー: ${err}`)); } });
+  context.subscriptions.push({ dispose: () => { watcherStop().catch((err: unknown) => console.error(`停止時のエラー: ${err}`)); } });
 }
 
 // 拡張機能の非アクティブ化関数

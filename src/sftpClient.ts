@@ -1,7 +1,7 @@
 import { Client, SFTPWrapper } from 'ssh2';
-import { loadConfig } from './config';
-import { showSftpError } from './utils';
-import { ErrorCode, showError } from './errors';
+import { loadConfig } from './config.js';
+import { showSftpError } from './utils.js';
+import { ErrorCode, showError } from './errors/index.js';
 
 let activeSftp: SFTPWrapper | null = null;
 let sftpClient: Client | null = null;
@@ -18,7 +18,7 @@ export async function getSftpClient(): Promise<SFTPWrapper> {
     sftpClient!
       .on('ready', () => {
         console.log('SFTP接続に成功しました');
-        sftpClient!.sftp((err, sftp) => {
+        sftpClient!.sftp((err: Error | undefined, sftp: SFTPWrapper) => {
           if (err) {
             console.error(`SFTPエラー: ${err}`);
             reject(err);
@@ -28,7 +28,7 @@ export async function getSftpClient(): Promise<SFTPWrapper> {
           }
         });
       })
-      .on('error', (err) => {
+      .on('error', (err: Error) => {
         console.error(`SFTP接続エラー: ${err}`);
         reject(err);
       })
