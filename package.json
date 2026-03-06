@@ -4,6 +4,7 @@
   "description": "変更されたファイルを自動的にSFTPサーバーへアップロードする拡張機能",
   "version": "0.1.0",
   "publisher": "Kodai-Yamamoto-SIW",
+  "type": "module",
   "engines": {
     "vscode": "^1.46.0"
   },
