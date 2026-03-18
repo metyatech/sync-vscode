@@ -1,22 +1,22 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "npm watch",
-			"type": "npm",
-			"script": "watch",
-			"problemMatcher": "$tsc-watch"
-		},
-		{
-			"type": "npm",
-			"script": "compile",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"problemMatcher": [],
-			"label": "npm: compile",
-			"detail": "tsc -p ./"
-		}
-	]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "npm watch",
+            "type": "npm",
+            "script": "watch",
+            "problemMatcher": "$tsc-watch"
+        },
+        {
+            "type": "npm",
+            "script": "compile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "label": "npm: compile",
+            "detail": "tsc -p ./"
+        }
+    ]
 }

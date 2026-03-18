@@ -1,6 +1,6 @@
 {
-  "source": "github:metyatech/agent-rules@HEAD",
-  "domains": ["node"],
-  "extra": [],
-  "output": "AGENTS.md"
+    "source": "github:metyatech/agent-rules@HEAD",
+    "domains": ["node"],
+    "extra": [],
+    "output": "AGENTS.md"
 }
